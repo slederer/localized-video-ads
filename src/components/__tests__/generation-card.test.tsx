@@ -6,20 +6,14 @@ import { GenerationCard } from "../generation-card";
 describe("GenerationCard", () => {
   it("renders provider name and status", () => {
     render(<GenerationCard provider="Luma" status="GENERATING" />);
-
     expect(screen.getByText("Luma")).toBeInTheDocument();
     expect(screen.getByText("Generating")).toBeInTheDocument();
   });
 
   it("shows video when completed", () => {
     render(
-      <GenerationCard
-        provider="Runway"
-        status="COMPLETED"
-        videoUrl="https://r2.dev/video.mp4"
-      />
+      <GenerationCard provider="Runway" status="COMPLETED" videoUrl="https://r2.dev/video.mp4" />
     );
-
     expect(screen.getByText("Ready")).toBeInTheDocument();
     const video = document.querySelector("video");
     expect(video).toBeInTheDocument();
@@ -28,13 +22,8 @@ describe("GenerationCard", () => {
 
   it("shows error message when failed", () => {
     render(
-      <GenerationCard
-        provider="Kling"
-        status="FAILED"
-        errorMessage="Rate limit exceeded"
-      />
+      <GenerationCard provider="Kling" status="FAILED" errorMessage="Rate limit exceeded" />
     );
-
     expect(screen.getByText("Failed")).toBeInTheDocument();
     expect(screen.getByText("Rate limit exceeded")).toBeInTheDocument();
   });
@@ -52,16 +41,9 @@ describe("GenerationCard", () => {
   it("calls onSelect when completed card is clicked", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
-
     render(
-      <GenerationCard
-        provider="Luma"
-        status="COMPLETED"
-        videoUrl="https://r2.dev/v.mp4"
-        onSelect={onSelect}
-      />
+      <GenerationCard provider="Luma" status="COMPLETED" videoUrl="https://r2.dev/v.mp4" onSelect={onSelect} />
     );
-
     await user.click(screen.getByTestId("generation-card-Luma"));
     expect(onSelect).toHaveBeenCalled();
   });
@@ -69,30 +51,16 @@ describe("GenerationCard", () => {
   it("does not call onSelect when pending card is clicked", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
-
-    render(
-      <GenerationCard
-        provider="Luma"
-        status="PENDING"
-        onSelect={onSelect}
-      />
-    );
-
+    render(<GenerationCard provider="Luma" status="PENDING" onSelect={onSelect} />);
     await user.click(screen.getByTestId("generation-card-Luma"));
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it("highlights selected card", () => {
+  it("highlights selected card with brand border", () => {
     render(
-      <GenerationCard
-        provider="Luma"
-        status="COMPLETED"
-        videoUrl="https://r2.dev/v.mp4"
-        isSelected={true}
-      />
+      <GenerationCard provider="Luma" status="COMPLETED" videoUrl="https://r2.dev/v.mp4" isSelected={true} />
     );
-
     const card = screen.getByTestId("generation-card-Luma");
-    expect(card.className).toContain("ring-violet-600");
+    expect(card.style.border).toContain("var(--color-brand)");
   });
 });

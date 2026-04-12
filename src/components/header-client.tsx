@@ -4,15 +4,36 @@ import Link from "next/link";
 
 export function HeaderClient() {
   return (
-    <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur-lg">
-      <div className="container mx-auto flex h-16 items-center justify-between px-6">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center">
-            <svg className="h-4.5 w-4.5 text-white" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+    <header style={{
+      position: "sticky",
+      top: 0,
+      zIndex: 50,
+      borderBottom: "1px solid var(--color-border-light)",
+      backgroundColor: "rgba(255,255,255,0.85)",
+      backdropFilter: "blur(12px)",
+    }}>
+      <div style={{
+        maxWidth: "1200px",
+        margin: "0 auto",
+        display: "flex",
+        height: "60px",
+        alignItems: "center",
+        padding: "0 24px",
+      }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+          <div className="brand-gradient" style={{
+            width: "32px",
+            height: "32px",
+            borderRadius: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}>
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="white">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
             </svg>
           </div>
-          <span className="text-lg font-bold tracking-tight">AdForge</span>
+          <span style={{ fontSize: "18px", fontWeight: 700, color: "var(--color-text-primary)" }}>AdForge</span>
         </Link>
       </div>
     </header>

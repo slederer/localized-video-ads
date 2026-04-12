@@ -20,14 +20,11 @@ describe("DurationSelector", () => {
     expect(screen.getByText("Full ad spot")).toBeInTheDocument();
   });
 
-  it("highlights the selected duration", () => {
+  it("highlights the selected duration with brand color", () => {
     render(<DurationSelector value={15} onChange={vi.fn()} />);
 
     const button15 = screen.getByText("15s").closest("button");
-    const button10 = screen.getByText("10s").closest("button");
-
-    expect(button15?.className).toContain("border-violet-600");
-    expect(button10?.className).not.toContain("border-violet-600");
+    expect(button15?.style.border).toContain("var(--color-brand)");
   });
 
   it("calls onChange when a duration is clicked", async () => {

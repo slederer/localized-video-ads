@@ -1,7 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-
 const DURATIONS = [
   { value: 10, label: "10s", desc: "Quick teaser", estimate: "~30s to generate" },
   { value: 15, label: "15s", desc: "Social media", estimate: "~1min to generate" },
@@ -15,34 +13,47 @@ interface DurationSelectorProps {
 
 export function DurationSelector({ value, onChange }: DurationSelectorProps) {
   return (
-    <div className="grid grid-cols-3 gap-3">
-      {DURATIONS.map((d) => (
-        <button
-          key={d.value}
-          type="button"
-          onClick={() => onChange(d.value)}
-          className={cn(
-            "flex flex-col items-center rounded-xl border-2 px-4 py-4 transition-all",
-            value === d.value
-              ? "border-violet-600 bg-violet-50 shadow-sm"
-              : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50"
-          )}
-        >
-          <span className={cn(
-            "text-2xl font-bold",
-            value === d.value ? "text-violet-700" : "text-zinc-900"
-          )}>
-            {d.label}
-          </span>
-          <span className={cn(
-            "text-xs font-medium mt-0.5",
-            value === d.value ? "text-violet-600" : "text-zinc-500"
-          )}>
-            {d.desc}
-          </span>
-          <span className="text-[10px] text-zinc-400 mt-1">{d.estimate}</span>
-        </button>
-      ))}
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+      {DURATIONS.map((d) => {
+        const isActive = value === d.value;
+        return (
+          <button
+            key={d.value}
+            type="button"
+            onClick={() => onChange(d.value)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: "16px 12px",
+              borderRadius: "12px",
+              border: isActive ? "2px solid var(--color-brand)" : "2px solid var(--color-border-light)",
+              backgroundColor: isActive ? "var(--color-brand-light)" : "var(--color-surface-raised)",
+              cursor: "pointer",
+              transition: "all 0.15s",
+            }}
+          >
+            <span style={{
+              fontSize: "24px",
+              fontWeight: 700,
+              color: isActive ? "var(--color-brand)" : "var(--color-text-primary)",
+            }}>
+              {d.label}
+            </span>
+            <span style={{
+              fontSize: "12px",
+              fontWeight: 500,
+              marginTop: "2px",
+              color: isActive ? "var(--color-brand)" : "var(--color-text-secondary)",
+            }}>
+              {d.desc}
+            </span>
+            <span style={{ fontSize: "10px", color: "var(--color-text-muted)", marginTop: "4px" }}>
+              {d.estimate}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

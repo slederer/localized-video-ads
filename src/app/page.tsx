@@ -8,9 +8,9 @@ export default async function Home() {
   if (!session?.user) redirect("/login");
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-surface)" }}>
       <Header />
-      <main className="flex flex-col items-center px-6 py-12">
+      <main style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 24px" }}>
         <AdForm />
       </main>
     </div>

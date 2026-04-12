@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { DurationSelector } from "./duration-selector";
 import { UploadZone } from "./upload-zone";
 
@@ -42,22 +39,23 @@ export function AdForm() {
   }
 
   return (
-    <div className="w-full max-w-2xl">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">
+    <div style={{ width: "100%", maxWidth: "640px" }}>
+      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+        <h1 style={{ fontSize: "32px", fontWeight: 700, color: "var(--color-text-primary)", letterSpacing: "-0.02em" }}>
           Create Your Video Ad
         </h1>
-        <p className="mt-2 text-zinc-500 max-w-lg mx-auto">
-          Describe your business and the ad you want. We'll generate it using 5 AI providers so you can compare and pick your favorite.
+        <p style={{ marginTop: "8px", fontSize: "16px", color: "var(--color-text-secondary)", maxWidth: "480px", margin: "8px auto 0" }}>
+          Describe your business and ad. We generate it with 5 AI providers so you can compare and pick your favorite.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="space-y-3">
-          <Label htmlFor="prompt" className="text-sm font-semibold text-zinc-700">
+      <form onSubmit={handleSubmit}>
+        {/* Prompt */}
+        <div style={{ marginBottom: "28px" }}>
+          <label htmlFor="prompt" style={{ display: "block", fontSize: "14px", fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "8px" }}>
             Describe your ad
-          </Label>
-          <Textarea
+          </label>
+          <textarea
             id="prompt"
             placeholder="E.g., A cozy Italian restaurant in Brooklyn offering 20% off dinner this weekend. Warm, inviting tone with shots of delicious pasta and happy diners..."
             value={prompt}
@@ -66,53 +64,90 @@ export function AdForm() {
             minLength={10}
             maxLength={2000}
             required
-            className="resize-none rounded-xl border-zinc-200 bg-white text-base placeholder:text-zinc-400 focus:border-violet-500 focus:ring-violet-500"
+            style={{
+              width: "100%",
+              padding: "14px 16px",
+              borderRadius: "12px",
+              border: "1px solid var(--color-border-light)",
+              backgroundColor: "var(--color-surface-raised)",
+              fontSize: "15px",
+              lineHeight: 1.5,
+              resize: "none",
+              fontFamily: "inherit",
+              color: "var(--color-text-primary)",
+              outline: "none",
+              boxSizing: "border-box",
+            }}
           />
-          <div className="flex justify-between text-xs text-zinc-400">
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px", fontSize: "12px", color: "var(--color-text-muted)" }}>
             <span>Be specific about your business, offer, and desired tone</span>
             <span>{prompt.length}/2000</span>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <Label className="text-sm font-semibold text-zinc-700">
+        {/* Duration */}
+        <div style={{ marginBottom: "28px" }}>
+          <label style={{ display: "block", fontSize: "14px", fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "8px" }}>
             Choose duration
-          </Label>
+          </label>
           <DurationSelector value={duration} onChange={setDuration} />
         </div>
 
-        <div className="space-y-3">
-          <Label className="text-sm font-semibold text-zinc-700">
+        {/* Upload */}
+        <div style={{ marginBottom: "28px" }}>
+          <label style={{ display: "block", fontSize: "14px", fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "8px" }}>
             Reference images or videos
-            <span className="font-normal text-zinc-400 ml-1">(optional)</span>
-          </Label>
+            <span style={{ fontWeight: 400, color: "var(--color-text-muted)", marginLeft: "6px" }}>(optional)</span>
+          </label>
           <UploadZone onUploadComplete={setAssets} />
         </div>
 
+        {/* Error */}
         {error && (
-          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700" role="alert">
+          <div role="alert" style={{
+            padding: "12px 16px",
+            borderRadius: "12px",
+            backgroundColor: "#fef2f2",
+            border: "1px solid #fecaca",
+            color: "#dc2626",
+            fontSize: "14px",
+            marginBottom: "20px",
+          }}>
             {error}
           </div>
         )}
 
-        <Button
+        {/* Submit */}
+        <button
           type="submit"
-          className="w-full h-12 text-base rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-violet-500/25 transition-all hover:shadow-xl hover:shadow-violet-500/30"
-          size="lg"
+          className="brand-btn"
           disabled={isSubmitting || prompt.length < 10}
+          style={{
+            width: "100%",
+            height: "48px",
+            borderRadius: "12px",
+            border: "none",
+            fontSize: "16px",
+            fontWeight: 600,
+            cursor: isSubmitting || prompt.length < 10 ? "not-allowed" : "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+          }}
         >
           {isSubmitting ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            <>
+              <svg style={{ animation: "spin 1s linear infinite", width: "18px", height: "18px" }} viewBox="0 0 24 24" fill="none">
+                <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
               Generating with 5 AI providers...
-            </span>
+            </>
           ) : (
             "Generate Ad"
           )}
-        </Button>
+        </button>
       </form>
     </div>
   );

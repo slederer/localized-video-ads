@@ -4,7 +4,6 @@ import { useEffect, useState, use } from "react";
 import Link from "next/link";
 import { HeaderClient } from "@/components/header-client";
 import { ResultsGallery } from "@/components/results-gallery";
-import { Button } from "@/components/ui/button";
 
 interface Generation {
   id: string;
@@ -59,25 +58,40 @@ export default function JobPage({
     }
 
     poll();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [jobId]);
 
   if (error) {
     return (
-      <div className="min-h-screen bg-zinc-50">
+      <div style={{ minHeight: "100vh", backgroundColor: "var(--color-surface)" }}>
         <HeaderClient />
-        <main className="flex flex-1 flex-col items-center justify-center px-6 py-24">
-          <div className="text-center space-y-4">
-            <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
-              <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <main style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "96px 24px" }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{
+              width: "56px",
+              height: "56px",
+              borderRadius: "50%",
+              backgroundColor: "#fef2f2",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 16px",
+            }}>
+              <svg width="28" height="28" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="#ef4444">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
               </svg>
             </div>
-            <p className="text-lg font-medium text-zinc-900">{error}</p>
-            <Link href="/">
-              <Button className="rounded-xl">Create New Ad</Button>
+            <p style={{ fontSize: "18px", fontWeight: 500, color: "var(--color-text-primary)", marginBottom: "16px" }}>{error}</p>
+            <Link href="/" className="brand-btn" style={{
+              display: "inline-flex",
+              padding: "10px 20px",
+              borderRadius: "10px",
+              border: "none",
+              fontSize: "14px",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}>
+              Create New Ad
             </Link>
           </div>
         </main>
@@ -87,66 +101,94 @@ export default function JobPage({
 
   if (!job) {
     return (
-      <div className="min-h-screen bg-zinc-50">
+      <div style={{ minHeight: "100vh", backgroundColor: "var(--color-surface)" }}>
         <HeaderClient />
-        <main className="flex flex-1 flex-col items-center justify-center px-6 py-24">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-10 w-10 rounded-full border-2 border-zinc-300 border-t-violet-600 animate-spin" />
-            <p className="text-sm text-zinc-500">Loading your ad results...</p>
-          </div>
+        <main style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "96px 24px" }}>
+          <div style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            border: "3px solid #e4e4e7",
+            borderTopColor: "var(--color-brand)",
+            animation: "spin 1s linear infinite",
+            marginBottom: "16px",
+          }} />
+          <p style={{ fontSize: "14px", color: "var(--color-text-secondary)" }}>Loading your ad results...</p>
         </main>
       </div>
     );
   }
 
-  const completedCount = job.generations.filter(
-    (g) => g.status === "COMPLETED"
-  ).length;
+  const completedCount = job.generations.filter((g) => g.status === "COMPLETED").length;
   const totalCount = job.generations.length;
-  const allDone = job.generations.every(
-    (g) => g.status === "COMPLETED" || g.status === "FAILED"
-  );
+  const allDone = job.generations.every((g) => g.status === "COMPLETED" || g.status === "FAILED");
 
   return (
-    <div className="min-h-screen bg-zinc-50">
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-surface)" }}>
       <HeaderClient />
-      <main className="container mx-auto max-w-6xl px-6 py-8 space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-                Your Video Ads
-              </h1>
-              <span className="inline-flex items-center rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700">
+      <main style={{ maxWidth: "1100px", margin: "0 auto", padding: "32px 24px" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "32px", flexWrap: "wrap", gap: "12px" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
+              <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--color-text-primary)" }}>Your Video Ads</h1>
+              <span style={{
+                padding: "2px 10px",
+                borderRadius: "100px",
+                backgroundColor: "var(--color-brand-light)",
+                color: "var(--color-brand)",
+                fontSize: "12px",
+                fontWeight: 600,
+              }}>
                 {job.duration}s
               </span>
             </div>
-            <p className="text-sm text-zinc-500 max-w-2xl line-clamp-2">{job.prompt}</p>
+            <p style={{ fontSize: "14px", color: "var(--color-text-secondary)", maxWidth: "600px" }}>{job.prompt}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ${
-              allDone
-                ? "bg-green-100 text-green-700"
-                : "bg-amber-100 text-amber-700"
-            }`}>
-              {!allDone && (
-                <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
-              )}
-              {completedCount}/{totalCount} ready
-            </div>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "6px 14px",
+            borderRadius: "100px",
+            fontSize: "13px",
+            fontWeight: 600,
+            backgroundColor: allDone ? "#dcfce7" : "#fef3c7",
+            color: allDone ? "#16a34a" : "#d97706",
+          }}>
+            {!allDone && (
+              <span style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                backgroundColor: "#d97706",
+                animation: "pulse 2s infinite",
+              }} />
+            )}
+            {completedCount}/{totalCount} ready
           </div>
         </div>
 
+        {/* Gallery */}
         <ResultsGallery generations={job.generations} />
 
-        <div className="pt-6 border-t border-zinc-200">
-          <Link href="/">
-            <Button variant="outline" className="rounded-xl">
-              <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Create Another Ad
-            </Button>
+        {/* Footer */}
+        <div style={{ marginTop: "32px", paddingTop: "24px", borderTop: "1px solid var(--color-border-light)" }}>
+          <Link href="/" style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            padding: "10px 18px",
+            borderRadius: "10px",
+            border: "1px solid var(--color-border-light)",
+            backgroundColor: "var(--color-surface-raised)",
+            color: "var(--color-text-primary)",
+            fontSize: "14px",
+            fontWeight: 500,
+            textDecoration: "none",
+            transition: "all 0.15s",
+          }}>
+            + Create Another Ad
           </Link>
         </div>
       </main>

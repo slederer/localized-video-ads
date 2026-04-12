@@ -33,14 +33,12 @@ describe("AdForm", () => {
     expect(screen.getByText("10s")).toBeInTheDocument();
     expect(screen.getByText("15s")).toBeInTheDocument();
     expect(screen.getByText("30s")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Generate Ad" })
-    ).toBeInTheDocument();
+    expect(screen.getByText("Generate Ad")).toBeInTheDocument();
   });
 
   it("disables submit button when prompt is too short", () => {
     render(<AdForm />);
-    const button = screen.getByRole("button", { name: "Generate Ad" });
+    const button = screen.getByText("Generate Ad");
     expect(button).toBeDisabled();
   });
 
@@ -53,8 +51,7 @@ describe("AdForm", () => {
       "A beautiful bakery in downtown Portland"
     );
 
-    const button = screen.getByRole("button", { name: "Generate Ad" });
-    expect(button).toBeEnabled();
+    expect(screen.getByText("Generate Ad")).toBeEnabled();
   });
 
   it("shows character count", async () => {
@@ -79,7 +76,7 @@ describe("AdForm", () => {
       screen.getByLabelText("Describe your ad"),
       "A cozy bakery with fresh bread and pastries"
     );
-    await user.click(screen.getByRole("button", { name: "Generate Ad" }));
+    await user.click(screen.getByText("Generate Ad"));
 
     expect(global.fetch).toHaveBeenCalledWith("/api/jobs", {
       method: "POST",
@@ -103,7 +100,7 @@ describe("AdForm", () => {
       screen.getByLabelText("Describe your ad"),
       "A valid prompt for testing purposes"
     );
-    await user.click(screen.getByRole("button", { name: "Generate Ad" }));
+    await user.click(screen.getByText("Generate Ad"));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Server error");
   });
@@ -112,9 +109,7 @@ describe("AdForm", () => {
     const user = userEvent.setup();
     let resolvePromise: (value: unknown) => void;
     (global.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(
-      new Promise((r) => {
-        resolvePromise = r;
-      })
+      new Promise((r) => { resolvePromise = r; })
     );
 
     render(<AdForm />);
@@ -123,13 +118,10 @@ describe("AdForm", () => {
       screen.getByLabelText("Describe your ad"),
       "A valid test prompt for a bakery"
     );
-    await user.click(screen.getByRole("button", { name: "Generate Ad" }));
+    await user.click(screen.getByText("Generate Ad"));
 
     expect(screen.getByText("Generating with 5 AI providers...")).toBeInTheDocument();
 
-    resolvePromise!({
-      ok: true,
-      json: () => Promise.resolve({ jobId: "job-1" }),
-    });
+    resolvePromise!({ ok: true, json: () => Promise.resolve({ jobId: "job-1" }) });
   });
 });

@@ -46,6 +46,21 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Brand colors */
+  --color-brand: #7c3aed;
+  --color-brand-light: #ede9fe;
+  --color-brand-dark: #5b21b6;
+  --color-brand-fg: #ffffff;
+  --color-surface: #fafafa;
+  --color-surface-raised: #ffffff;
+  --color-text-primary: #18181b;
+  --color-text-secondary: #71717a;
+  --color-text-muted: #a1a1aa;
+  --color-border-light: #e4e4e7;
+  --color-success: #22c55e;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
 }
 
 :root {
@@ -127,4 +142,43 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Brand utilities */
+.brand-gradient {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+}
+.brand-gradient-text {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.brand-btn {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+  color: white;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+  transition: all 0.2s;
+}
+.brand-btn:hover {
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+  transform: translateY(-1px);
+}
+.brand-btn:disabled {
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
+}
+.provider-bar-luma { background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+.provider-bar-runway { background: linear-gradient(90deg, #f43f5e, #ec4899); }
+.provider-bar-veo { background: linear-gradient(90deg, #22c55e, #10b981); }
+.provider-bar-kling { background: linear-gradient(90deg, #f97316, #f59e0b); }
+.provider-bar-minimax { background: linear-gradient(90deg, #a855f7, #7c3aed); }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
