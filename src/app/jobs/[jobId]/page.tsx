@@ -73,9 +73,9 @@ export default function JobPage({
         <main className="flex flex-1 flex-col items-center justify-center px-4 py-12">
           <div className="text-center space-y-4">
             <p className="text-lg text-destructive">{error}</p>
-            <Button asChild>
-              <Link href="/">Create New Ad</Link>
-            </Button>
+            <Link href="/">
+              <Button>Create New Ad</Button>
+            </Link>
           </div>
         </main>
       </>
@@ -124,9 +124,9 @@ export default function JobPage({
         <ResultsGallery generations={job.generations} />
 
         <div className="pt-4 border-t">
-          <Button variant="outline" asChild>
-            <Link href="/">Create Another Ad</Link>
-          </Button>
+          <Link href="/">
+            <Button variant="outline">Create Another Ad</Button>
+          </Link>
         </div>
       </main>
     </>

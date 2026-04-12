@@ -36,11 +36,11 @@ export function VideoPreview({
       />
 
       <div className="flex gap-3">
-        <Button asChild className="flex-1">
-          <a href={videoUrl} download target="_blank" rel="noopener noreferrer">
+        <a href={videoUrl} download target="_blank" rel="noopener noreferrer" className="flex-1">
+          <Button className="w-full">
             Download Video
-          </a>
-        </Button>
+          </Button>
+        </a>
       </div>
     </div>
   );
