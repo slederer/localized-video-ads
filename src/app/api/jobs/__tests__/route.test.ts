@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+const mockAuth = vi.fn();
+
+vi.mock("@/auth", () => ({
+  auth: (...args: unknown[]) => mockAuth(...args),
+}));
+
 const mockJobCreate = vi.fn();
 
 vi.mock("@/lib/db", () => ({
@@ -30,6 +36,9 @@ function makeRequest(body: unknown) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockAuth.mockResolvedValue({
+    user: { id: "user-1", email: "test@example.com" },
+  });
   mockJobCreate.mockResolvedValue({
     id: "job-123",
     generations: [
@@ -62,6 +71,7 @@ describe("POST /api/jobs", () => {
           prompt: "A beautiful bakery ad with fresh bread",
           duration: 10,
           uploadedAssets: [],
+          userId: "user-1",
           generations: {
             create: expect.arrayContaining([
               { provider: "LUMA" },
@@ -138,6 +148,17 @@ describe("POST /api/jobs", () => {
   it("returns 400 for missing prompt", async () => {
     const res = await POST(makeRequest({ duration: 10 }));
     expect(res.status).toBe(400);
+  });
+
+  it("returns 401 when not authenticated", async () => {
+    mockAuth.mockResolvedValueOnce(null);
+    const res = await POST(
+      makeRequest({
+        prompt: "A valid prompt for testing auth",
+        duration: 10,
+      })
+    );
+    expect(res.status).toBe(401);
   });
 
   it("returns 400 for invalid JSON", async () => {

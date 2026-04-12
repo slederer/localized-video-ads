@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod/v4";
+import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { inngest } from "@/lib/inngest/client";
 import { VIDEO_PROVIDERS } from "@/types";
@@ -11,6 +12,11 @@ const createJobSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -36,6 +42,7 @@ export async function POST(request: Request) {
       prompt,
       duration,
       uploadedAssets: assets,
+      userId: session.user.id,
       generations: {
         create: VIDEO_PROVIDERS.map((provider) => ({
           provider,

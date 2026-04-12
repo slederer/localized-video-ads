@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { Header } from "@/components/header";
+import { HeaderClient } from "@/components/header-client";
 import { ResultsGallery } from "@/components/results-gallery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +69,7 @@ export default function JobPage({
   if (error) {
     return (
       <>
-        <Header />
+        <HeaderClient />
         <main className="flex flex-1 flex-col items-center justify-center px-4 py-12">
           <div className="text-center space-y-4">
             <p className="text-lg text-destructive">{error}</p>
@@ -85,7 +85,7 @@ export default function JobPage({
   if (!job) {
     return (
       <>
-        <Header />
+        <HeaderClient />
         <main className="flex flex-1 flex-col items-center justify-center px-4 py-12">
           <div className="animate-pulse text-muted-foreground">Loading...</div>
         </main>
@@ -100,7 +100,7 @@ export default function JobPage({
 
   return (
     <>
-      <Header />
+      <HeaderClient />
       <main className="container mx-auto max-w-5xl px-4 py-8 space-y-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
