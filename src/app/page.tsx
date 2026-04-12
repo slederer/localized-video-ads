@@ -8,11 +8,11 @@ export default async function Home() {
   if (!session?.user) redirect("/login");
 
   return (
-    <>
+    <div className="min-h-screen bg-zinc-50">
       <Header />
-      <main className="flex flex-1 flex-col items-center justify-center px-4 py-12">
+      <main className="flex flex-col items-center px-6 py-12">
         <AdForm />
       </main>
-    </>
+    </div>
   );
 }

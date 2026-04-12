@@ -75,7 +75,12 @@ describe("ResultsGallery", () => {
     await user.click(screen.getByTestId("generation-card-Luma"));
     expect(screen.getByTestId("video-player")).toBeInTheDocument();
 
-    await user.click(screen.getByText("Close"));
+    // Close button is now an icon button inside the preview header
+    const buttons = screen.getAllByRole("button");
+    const closeButton = buttons.find(
+      (b) => !b.textContent?.includes("Download")
+    );
+    await user.click(closeButton!);
     expect(screen.queryByTestId("video-player")).not.toBeInTheDocument();
   });
 });

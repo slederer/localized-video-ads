@@ -12,12 +12,12 @@ describe("DurationSelector", () => {
     expect(screen.getByText("30s")).toBeInTheDocument();
   });
 
-  it("shows estimated generation times", () => {
+  it("shows descriptions for each duration", () => {
     render(<DurationSelector value={10} onChange={vi.fn()} />);
 
-    expect(screen.getByText("~30s")).toBeInTheDocument();
-    expect(screen.getByText("~1min")).toBeInTheDocument();
-    expect(screen.getByText("~3min")).toBeInTheDocument();
+    expect(screen.getByText("Quick teaser")).toBeInTheDocument();
+    expect(screen.getByText("Social media")).toBeInTheDocument();
+    expect(screen.getByText("Full ad spot")).toBeInTheDocument();
   });
 
   it("highlights the selected duration", () => {
@@ -26,8 +26,8 @@ describe("DurationSelector", () => {
     const button15 = screen.getByText("15s").closest("button");
     const button10 = screen.getByText("10s").closest("button");
 
-    expect(button15?.className).toContain("border-primary");
-    expect(button10?.className).not.toContain("border-primary");
+    expect(button15?.className).toContain("border-violet-600");
+    expect(button10?.className).not.toContain("border-violet-600");
   });
 
   it("calls onChange when a duration is clicked", async () => {

@@ -3,13 +3,11 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdForm } from "../ad-form";
 
-// Mock next/navigation
 const mockPush = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-// Mock UploadZone to avoid UploadThing dependency
 vi.mock("../upload-zone", () => ({
   UploadZone: ({ onUploadComplete }: { onUploadComplete: (urls: string[]) => void }) => (
     <button
@@ -31,7 +29,7 @@ describe("AdForm", () => {
     render(<AdForm />);
 
     expect(screen.getByText("Create Your Video Ad")).toBeInTheDocument();
-    expect(screen.getByLabelText("Ad Description")).toBeInTheDocument();
+    expect(screen.getByLabelText("Describe your ad")).toBeInTheDocument();
     expect(screen.getByText("10s")).toBeInTheDocument();
     expect(screen.getByText("15s")).toBeInTheDocument();
     expect(screen.getByText("30s")).toBeInTheDocument();
@@ -51,7 +49,7 @@ describe("AdForm", () => {
     render(<AdForm />);
 
     await user.type(
-      screen.getByLabelText("Ad Description"),
+      screen.getByLabelText("Describe your ad"),
       "A beautiful bakery in downtown Portland"
     );
 
@@ -63,9 +61,9 @@ describe("AdForm", () => {
     const user = userEvent.setup();
     render(<AdForm />);
 
-    await user.type(screen.getByLabelText("Ad Description"), "Hello world");
+    await user.type(screen.getByLabelText("Describe your ad"), "Hello world");
 
-    expect(screen.getByText("11/2000 characters")).toBeInTheDocument();
+    expect(screen.getByText("11/2000")).toBeInTheDocument();
   });
 
   it("submits form and redirects to job page", async () => {
@@ -78,7 +76,7 @@ describe("AdForm", () => {
     render(<AdForm />);
 
     await user.type(
-      screen.getByLabelText("Ad Description"),
+      screen.getByLabelText("Describe your ad"),
       "A cozy bakery with fresh bread and pastries"
     );
     await user.click(screen.getByRole("button", { name: "Generate Ad" }));
@@ -102,7 +100,7 @@ describe("AdForm", () => {
     render(<AdForm />);
 
     await user.type(
-      screen.getByLabelText("Ad Description"),
+      screen.getByLabelText("Describe your ad"),
       "A valid prompt for testing purposes"
     );
     await user.click(screen.getByRole("button", { name: "Generate Ad" }));
@@ -110,7 +108,7 @@ describe("AdForm", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Server error");
   });
 
-  it("shows Creating... while submitting", async () => {
+  it("shows spinner while submitting", async () => {
     const user = userEvent.setup();
     let resolvePromise: (value: unknown) => void;
     (global.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(
@@ -122,14 +120,13 @@ describe("AdForm", () => {
     render(<AdForm />);
 
     await user.type(
-      screen.getByLabelText("Ad Description"),
+      screen.getByLabelText("Describe your ad"),
       "A valid test prompt for a bakery"
     );
     await user.click(screen.getByRole("button", { name: "Generate Ad" }));
 
-    expect(screen.getByText("Creating...")).toBeInTheDocument();
+    expect(screen.getByText("Generating with 5 AI providers...")).toBeInTheDocument();
 
-    // Resolve to clean up
     resolvePromise!({
       ok: true,
       json: () => Promise.resolve({ jobId: "job-1" }),

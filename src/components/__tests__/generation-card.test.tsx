@@ -44,7 +44,7 @@ describe("GenerationCard", () => {
     expect(screen.getByText("Generation failed")).toBeInTheDocument();
   });
 
-  it("shows progress for in-progress states", () => {
+  it("shows spinner for in-progress states", () => {
     render(<GenerationCard provider="MiniMax" status="PENDING" />);
     expect(screen.getByText("Queued...")).toBeInTheDocument();
   });
@@ -92,7 +92,7 @@ describe("GenerationCard", () => {
       />
     );
 
-    const card = screen.getByTestId("generation-card-Luma").closest("[class]");
-    expect(card?.className).toContain("ring-primary");
+    const card = screen.getByTestId("generation-card-Luma");
+    expect(card.className).toContain("ring-violet-600");
   });
 });
