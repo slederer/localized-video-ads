@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Box, VStack, Heading, Text, Textarea, Button, Alert,
+} from "@chakra-ui/react";
 import { DurationSelector } from "./duration-selector";
 import { UploadZone } from "./upload-zone";
 
@@ -39,116 +42,73 @@ export function AdForm() {
   }
 
   return (
-    <div style={{ width: "100%", maxWidth: "640px" }}>
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
-        <h1 style={{ fontSize: "32px", fontWeight: 700, color: "var(--color-text-primary)", letterSpacing: "-0.02em" }}>
+    <Box w="full" maxW="640px">
+      <VStack gap="2" mb="10" textAlign="center">
+        <Heading size="2xl" fontWeight="bold" letterSpacing="-0.02em">
           Create Your Video Ad
-        </h1>
-        <p style={{ marginTop: "8px", fontSize: "16px", color: "var(--color-text-secondary)", maxWidth: "480px", margin: "8px auto 0" }}>
+        </Heading>
+        <Text color="gray.500" maxW="480px">
           Describe your business and ad. We generate it with 5 AI providers so you can compare and pick your favorite.
-        </p>
-      </div>
+        </Text>
+      </VStack>
 
-      <form onSubmit={handleSubmit}>
-        {/* Prompt */}
-        <div style={{ marginBottom: "28px" }}>
-          <label htmlFor="prompt" style={{ display: "block", fontSize: "14px", fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "8px" }}>
-            Describe your ad
-          </label>
-          <textarea
-            id="prompt"
-            placeholder="E.g., A cozy Italian restaurant in Brooklyn offering 20% off dinner this weekend. Warm, inviting tone with shots of delicious pasta and happy diners..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            rows={5}
-            minLength={10}
-            maxLength={2000}
-            required
-            style={{
-              width: "100%",
-              padding: "14px 16px",
-              borderRadius: "12px",
-              border: "1px solid var(--color-border-light)",
-              backgroundColor: "var(--color-surface-raised)",
-              fontSize: "15px",
-              lineHeight: 1.5,
-              resize: "none",
-              fontFamily: "inherit",
-              color: "var(--color-text-primary)",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-          />
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px", fontSize: "12px", color: "var(--color-text-muted)" }}>
-            <span>Be specific about your business, offer, and desired tone</span>
-            <span>{prompt.length}/2000</span>
-          </div>
-        </div>
+      <Box bg="white" borderRadius="2xl" border="1px solid" borderColor="gray.200" p="8">
+        <form onSubmit={handleSubmit}>
+          <VStack gap="6" align="stretch">
+            <Box>
+              <Text fontSize="sm" fontWeight="semibold" mb="2">Describe your ad</Text>
+              <Textarea
+                id="prompt"
+                placeholder="E.g., A cozy Italian restaurant in Brooklyn offering 20% off dinner this weekend. Warm, inviting tone with shots of delicious pasta and happy diners..."
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={5}
+                minLength={10}
+                maxLength={2000}
+                required
+                resize="none"
+                size="lg"
+              />
+              <Box display="flex" justifyContent="space-between" mt="1.5">
+                <Text fontSize="xs" color="gray.400">Be specific about your business, offer, and desired tone</Text>
+                <Text fontSize="xs" color="gray.400">{prompt.length}/2000</Text>
+              </Box>
+            </Box>
 
-        {/* Duration */}
-        <div style={{ marginBottom: "28px" }}>
-          <label style={{ display: "block", fontSize: "14px", fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "8px" }}>
-            Choose duration
-          </label>
-          <DurationSelector value={duration} onChange={setDuration} />
-        </div>
+            <Box>
+              <Text fontSize="sm" fontWeight="semibold" mb="2">Choose duration</Text>
+              <DurationSelector value={duration} onChange={setDuration} />
+            </Box>
 
-        {/* Upload */}
-        <div style={{ marginBottom: "28px" }}>
-          <label style={{ display: "block", fontSize: "14px", fontWeight: 600, color: "var(--color-text-primary)", marginBottom: "8px" }}>
-            Reference images or videos
-            <span style={{ fontWeight: 400, color: "var(--color-text-muted)", marginLeft: "6px" }}>(optional)</span>
-          </label>
-          <UploadZone onUploadComplete={setAssets} />
-        </div>
+            <Box>
+              <Text fontSize="sm" fontWeight="semibold" mb="2">
+                Reference images or videos
+                <Text as="span" fontWeight="normal" color="gray.400" ml="1">(optional)</Text>
+              </Text>
+              <UploadZone onUploadComplete={setAssets} />
+            </Box>
 
-        {/* Error */}
-        {error && (
-          <div role="alert" style={{
-            padding: "12px 16px",
-            borderRadius: "12px",
-            backgroundColor: "#fef2f2",
-            border: "1px solid #fecaca",
-            color: "#dc2626",
-            fontSize: "14px",
-            marginBottom: "20px",
-          }}>
-            {error}
-          </div>
-        )}
+            {error && (
+              <Alert.Root status="error" borderRadius="lg">
+                <Alert.Indicator />
+                <Alert.Title fontSize="sm">{error}</Alert.Title>
+              </Alert.Root>
+            )}
 
-        {/* Submit */}
-        <button
-          type="submit"
-          className="brand-btn"
-          disabled={isSubmitting || prompt.length < 10}
-          style={{
-            width: "100%",
-            height: "48px",
-            borderRadius: "12px",
-            border: "none",
-            fontSize: "16px",
-            fontWeight: 600,
-            cursor: isSubmitting || prompt.length < 10 ? "not-allowed" : "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "8px",
-          }}
-        >
-          {isSubmitting ? (
-            <>
-              <svg style={{ animation: "spin 1s linear infinite", width: "18px", height: "18px" }} viewBox="0 0 24 24" fill="none">
-                <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              Generating with 5 AI providers...
-            </>
-          ) : (
-            "Generate Ad"
-          )}
-        </button>
-      </form>
-    </div>
+            <Button
+              type="submit"
+              w="full"
+              size="lg"
+              colorPalette="purple"
+              loading={isSubmitting}
+              loadingText="Generating with 5 AI providers..."
+              disabled={isSubmitting || prompt.length < 10}
+            >
+              Generate Ad
+            </Button>
+          </VStack>
+        </form>
+      </Box>
+    </Box>
   );
 }

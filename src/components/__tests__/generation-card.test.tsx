@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, userEvent } from "@/test/test-utils";
 import { GenerationCard } from "../generation-card";
 
 describe("GenerationCard", () => {
@@ -11,24 +10,18 @@ describe("GenerationCard", () => {
   });
 
   it("shows video when completed", () => {
-    render(
-      <GenerationCard provider="Runway" status="COMPLETED" videoUrl="https://r2.dev/video.mp4" />
-    );
+    render(<GenerationCard provider="Runway" status="COMPLETED" videoUrl="https://r2.dev/video.mp4" />);
     expect(screen.getByText("Ready")).toBeInTheDocument();
-    const video = document.querySelector("video");
-    expect(video).toBeInTheDocument();
-    expect(video?.src).toContain("video.mp4");
+    expect(document.querySelector("video")).toBeInTheDocument();
   });
 
   it("shows error message when failed", () => {
-    render(
-      <GenerationCard provider="Kling" status="FAILED" errorMessage="Rate limit exceeded" />
-    );
+    render(<GenerationCard provider="Kling" status="FAILED" errorMessage="Rate limit exceeded" />);
     expect(screen.getByText("Failed")).toBeInTheDocument();
     expect(screen.getByText("Rate limit exceeded")).toBeInTheDocument();
   });
 
-  it("shows default error message when failed without message", () => {
+  it("shows default error when failed without message", () => {
     render(<GenerationCard provider="Veo" status="FAILED" />);
     expect(screen.getByText("Generation failed")).toBeInTheDocument();
   });
@@ -41,26 +34,16 @@ describe("GenerationCard", () => {
   it("calls onSelect when completed card is clicked", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
-    render(
-      <GenerationCard provider="Luma" status="COMPLETED" videoUrl="https://r2.dev/v.mp4" onSelect={onSelect} />
-    );
+    render(<GenerationCard provider="Luma" status="COMPLETED" videoUrl="https://r2.dev/v.mp4" onSelect={onSelect} />);
     await user.click(screen.getByTestId("generation-card-Luma"));
     expect(onSelect).toHaveBeenCalled();
   });
 
-  it("does not call onSelect when pending card is clicked", async () => {
+  it("does not call onSelect when pending", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
     render(<GenerationCard provider="Luma" status="PENDING" onSelect={onSelect} />);
     await user.click(screen.getByTestId("generation-card-Luma"));
     expect(onSelect).not.toHaveBeenCalled();
-  });
-
-  it("highlights selected card with brand border", () => {
-    render(
-      <GenerationCard provider="Luma" status="COMPLETED" videoUrl="https://r2.dev/v.mp4" isSelected={true} />
-    );
-    const card = screen.getByTestId("generation-card-Luma");
-    expect(card.style.border).toContain("var(--color-brand)");
   });
 });

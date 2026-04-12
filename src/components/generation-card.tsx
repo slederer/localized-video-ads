@@ -1,5 +1,7 @@
 "use client";
 
+import { Box, Text, Badge, Spinner } from "@chakra-ui/react";
+
 interface GenerationCardProps {
   provider: string;
   status: string;
@@ -9,13 +11,21 @@ interface GenerationCardProps {
   isSelected?: boolean;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  PENDING: { label: "Queued", color: "var(--color-text-muted)" },
-  GENERATING: { label: "Generating", color: "var(--color-info)" },
-  EXTENDING: { label: "Extending", color: "var(--color-info)" },
-  UPLOADING: { label: "Finalizing", color: "var(--color-info)" },
-  COMPLETED: { label: "Ready", color: "var(--color-success)" },
-  FAILED: { label: "Failed", color: "var(--color-error)" },
+const PROVIDER_COLORS: Record<string, string> = {
+  Luma: "blue",
+  Runway: "pink",
+  Veo: "green",
+  Kling: "orange",
+  MiniMax: "purple",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  PENDING: "Queued",
+  GENERATING: "Generating",
+  EXTENDING: "Extending",
+  UPLOADING: "Finalizing",
+  COMPLETED: "Ready",
+  FAILED: "Failed",
 };
 
 export function GenerationCard({
@@ -26,58 +36,48 @@ export function GenerationCard({
   onSelect,
   isSelected,
 }: GenerationCardProps) {
-  const config = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING;
   const isReady = status === "COMPLETED" && videoUrl;
   const isFailed = status === "FAILED";
   const isProcessing = !isReady && !isFailed;
-  const barClass = `provider-bar-${provider.toLowerCase()}`;
+  const color = PROVIDER_COLORS[provider] || "gray";
+  const label = STATUS_LABEL[status] || "Queued";
 
   return (
-    <div
+    <Box
       data-testid={`generation-card-${provider}`}
       onClick={isReady ? onSelect : undefined}
       role={isReady ? "button" : undefined}
-      style={{
-        borderRadius: "16px",
-        backgroundColor: "var(--color-surface-raised)",
-        border: isSelected ? "2px solid var(--color-brand)" : "1px solid var(--color-border-light)",
-        overflow: "hidden",
-        cursor: isReady ? "pointer" : "default",
-        opacity: isFailed ? 0.5 : 1,
-        transition: "all 0.2s",
-      }}
+      borderRadius="2xl"
+      bg="white"
+      border="2px solid"
+      borderColor={isSelected ? "purple.500" : "gray.200"}
+      overflow="hidden"
+      cursor={isReady ? "pointer" : "default"}
+      opacity={isFailed ? 0.5 : 1}
+      transition="all 0.2s"
+      _hover={isReady ? { shadow: "lg", borderColor: "gray.300" } : {}}
     >
-      <div className={barClass} style={{ height: "3px" }} />
+      {/* Provider color bar */}
+      <Box h="1" bg={`${color}.500`} />
 
-      <div style={{ padding: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-          <span style={{ fontWeight: 600, fontSize: "15px", color: "var(--color-text-primary)" }}>{provider}</span>
-          <span style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            fontSize: "12px",
-            fontWeight: 500,
-            padding: "3px 10px",
-            borderRadius: "100px",
-            backgroundColor: isReady ? "#dcfce7" : isFailed ? "#fef2f2" : "#f4f4f5",
-            color: config.color,
-          }}>
+      <Box p="4">
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb="3">
+          <Text fontWeight="semibold" fontSize="sm">{provider}</Text>
+          <Badge
+            colorPalette={isReady ? "green" : isFailed ? "red" : "gray"}
+            variant="subtle"
+            borderRadius="full"
+            size="sm"
+          >
             {isProcessing && (
-              <span style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                backgroundColor: config.color,
-                animation: "pulse 2s infinite",
-              }} />
+              <Box as="span" w="1.5" h="1.5" borderRadius="full" bg="currentColor" mr="1" display="inline-block" />
             )}
-            {config.label}
-          </span>
-        </div>
+            {label}
+          </Badge>
+        </Box>
 
         {isReady && videoUrl ? (
-          <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden", backgroundColor: "#000" }}>
+          <Box borderRadius="xl" overflow="hidden" bg="black">
             <video
               src={videoUrl}
               style={{ width: "100%", aspectRatio: "16/9", display: "block" }}
@@ -87,47 +87,25 @@ export function GenerationCard({
               onMouseEnter={(e) => e.currentTarget.play()}
               onMouseLeave={(e) => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
             />
-          </div>
+          </Box>
         ) : isFailed ? (
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            aspectRatio: "16/9",
-            borderRadius: "12px",
-            backgroundColor: "#fef2f2",
-            color: "#ef4444",
-            fontSize: "13px",
-            gap: "4px",
-          }}>
-            <span>{errorMessage || "Generation failed"}</span>
-          </div>
+          <Box
+            display="flex" alignItems="center" justifyContent="center"
+            aspectRatio="16/9" borderRadius="xl" bg="red.50" color="red.500"
+            fontSize="sm"
+          >
+            {errorMessage || "Generation failed"}
+          </Box>
         ) : (
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            aspectRatio: "16/9",
-            borderRadius: "12px",
-            backgroundColor: "#f4f4f5",
-            gap: "12px",
-          }}>
-            <div style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "50%",
-              border: "3px solid #e4e4e7",
-              borderTopColor: "var(--color-brand)",
-              animation: "spin 1s linear infinite",
-            }} />
-            <span style={{ fontSize: "12px", color: "var(--color-text-muted)", fontWeight: 500 }}>
-              {config.label}...
-            </span>
-          </div>
+          <Box
+            display="flex" flexDir="column" alignItems="center" justifyContent="center"
+            aspectRatio="16/9" borderRadius="xl" bg="gray.50" gap="3"
+          >
+            <Spinner size="md" color="purple.500" />
+            <Text fontSize="xs" color="gray.400" fontWeight="medium">{label}...</Text>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
