@@ -36,6 +36,11 @@ export function HeaderClient() {
 
           {session?.user && (
             <HStack gap="3">
+              <Link href="/settings" style={{ textDecoration: "none" }}>
+                <Button variant="ghost" size="sm" color="gray.600">
+                  Settings
+                </Button>
+              </Link>
               {session.user.image && (
                 <Image
                   src={session.user.image}

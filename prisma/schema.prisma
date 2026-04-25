@@ -108,3 +108,12 @@ enum VideoProvider {
   KLING
   MINIMAX
 }
+
+model ApiKey {
+  provider   String   @id
+  ciphertext String   @db.Text
+  iv         String
+  tag        String
+  updatedAt  DateTime @updatedAt
+  updatedBy  String?
+}

@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("@/lib/api-keys", () => ({
+  getApiKey: vi.fn(async () => "test-runway-key"),
+}));
+
 import { runwayProvider } from "../runway";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 beforeEach(() => {
-  vi.resetAllMocks();
-  process.env.RUNWAY_API_KEY = "test-runway-key";
+  mockFetch.mockReset();
 });
 
 describe("runwayProvider", () => {

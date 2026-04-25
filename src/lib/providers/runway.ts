@@ -4,18 +4,23 @@ import type {
   GenerationResult,
   GenerationStatus,
 } from "./types";
+import { getApiKey } from "@/lib/api-keys";
 
 const RUNWAY_API_BASE = "https://api.dev.runwayml.com/v1";
 
-function getApiKey(): string {
-  const key = process.env.RUNWAY_API_KEY;
-  if (!key) throw new Error("RUNWAY_API_KEY is not set");
+async function resolveApiKey(): Promise<string> {
+  const key = await getApiKey("RUNWAY");
+  if (!key) {
+    throw new Error(
+      "Runway API key is not configured. Set it at /settings or via RUNWAY_API_KEY env."
+    );
+  }
   return key;
 }
 
-function headers(): Record<string, string> {
+async function headers(): Promise<Record<string, string>> {
   return {
-    Authorization: `Bearer ${getApiKey()}`,
+    Authorization: `Bearer ${await resolveApiKey()}`,
     "Content-Type": "application/json",
     "X-Runway-Version": "2024-11-06",
   };
@@ -46,7 +51,7 @@ export const runwayProvider: VideoProviderClient = {
 
     const res = await fetch(`${RUNWAY_API_BASE}/image_to_video`, {
       method: "POST",
-      headers: headers(),
+      headers: await headers(),
       body: JSON.stringify(body),
     });
 
@@ -63,7 +68,7 @@ export const runwayProvider: VideoProviderClient = {
 
   async getGeneration(id: string): Promise<GenerationStatus> {
     const res = await fetch(`${RUNWAY_API_BASE}/tasks/${id}`, {
-      headers: headers(),
+      headers: await headers(),
     });
 
     if (!res.ok) {
