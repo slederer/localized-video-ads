@@ -4,6 +4,7 @@ export const VIDEO_PROVIDERS = [
   "VEO",
   "KLING",
   "MINIMAX",
+  "SEEDANCE",
 ] as const;
 
 export type VideoProviderKey = (typeof VIDEO_PROVIDERS)[number];

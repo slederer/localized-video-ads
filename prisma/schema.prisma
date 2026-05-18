@@ -107,6 +107,7 @@ enum VideoProvider {
   VEO
   KLING
   MINIMAX
+  SEEDANCE
 }
 
 model ApiKey {

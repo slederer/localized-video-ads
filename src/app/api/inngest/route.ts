@@ -6,6 +6,7 @@ import {
   generateVeo,
   generateKling,
   generateMinimax,
+  generateSeedance,
 } from "@/lib/inngest/functions";
 
 export const { GET, POST, PUT } = serve({
@@ -16,5 +17,6 @@ export const { GET, POST, PUT } = serve({
     generateVeo,
     generateKling,
     generateMinimax,
+    generateSeedance,
   ],
 });

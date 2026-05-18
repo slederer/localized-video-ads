@@ -26,6 +26,11 @@ const PROVIDER_LABELS: Record<string, { name: string; description: string }> = {
     name: "MiniMax",
     description: "Video generation. Get a key at minimaxi.com.",
   },
+  SEEDANCE: {
+    name: "Seedance (BytePlus)",
+    description:
+      "ByteDance Seedance 2.0 video generation via BytePlus ModelArk. Get a key at console.byteplus.com (ModelArk).",
+  },
   RESEND: {
     name: "Resend",
     description: "Transactional email (verification, password reset).",

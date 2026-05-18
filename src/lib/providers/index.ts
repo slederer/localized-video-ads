@@ -3,6 +3,7 @@ export { runwayProvider } from "./runway";
 export { veoProvider } from "./veo";
 export { klingProvider } from "./kling";
 export { minimaxProvider } from "./minimax";
+export { seedanceProvider } from "./seedance";
 export type {
   VideoProviderClient,
   GenerateOptions,
@@ -16,6 +17,7 @@ import { runwayProvider } from "./runway";
 import { veoProvider } from "./veo";
 import { klingProvider } from "./kling";
 import { minimaxProvider } from "./minimax";
+import { seedanceProvider } from "./seedance";
 import type { VideoProviderClient } from "./types";
 
 export const allProviders: Record<string, VideoProviderClient> = {
@@ -24,4 +26,5 @@ export const allProviders: Record<string, VideoProviderClient> = {
   VEO: veoProvider,
   KLING: klingProvider,
   MINIMAX: minimaxProvider,
+  SEEDANCE: seedanceProvider,
 };
