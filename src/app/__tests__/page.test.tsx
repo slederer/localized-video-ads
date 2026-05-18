@@ -15,6 +15,10 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
+vi.mock("next/headers", () => ({
+  cookies: async () => ({ getAll: () => [] }),
+}));
+
 vi.mock("@/components/home-client", () => ({
   HomeClient: () => <div data-testid="home-client">Home</div>,
 }));

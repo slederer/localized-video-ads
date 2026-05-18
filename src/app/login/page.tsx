@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -14,6 +14,23 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Surface Auth.js OAuth errors (?error=) instead of a silent redirect loop.
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("error");
+    if (!code) return;
+    const messages: Record<string, string> = {
+      OAuthAccountNotLinked:
+        "This email is already registered with a different sign-in method.",
+      OAuthCallbackError:
+        "Google sign-in callback failed. Please try again.",
+      AccessDenied: "Access was denied during Google sign-in.",
+      Configuration:
+        "Server auth configuration error. Check AUTH_SECRET / Google credentials.",
+      Verification: "The sign-in link is invalid or has expired.",
+    };
+    setError(messages[code] || `Sign-in error: ${code}`);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
