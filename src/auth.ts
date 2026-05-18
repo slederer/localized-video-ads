@@ -8,6 +8,13 @@ import bcrypt from "bcryptjs";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   basePath: "/api/auth",
+  // TEMP: full callback trace to diagnose Google login redirect loop.
+  debug: true,
+  logger: {
+    error(error: Error) {
+      console.error("[authjs:error]", error.name, error.message, error.stack);
+    },
+  },
   adapter: PrismaAdapter(db as any),
   session: { strategy: "jwt" },
   providers: [
