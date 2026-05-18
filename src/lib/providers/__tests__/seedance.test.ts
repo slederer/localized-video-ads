@@ -1,27 +1,40 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-vi.mock("@/lib/api-keys", () => ({
-  getApiKey: vi.fn(async () => "test-seedance-key"),
-}));
-
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { seedanceProvider } from "../seedance";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+const ORIG = { ...process.env };
+
 beforeEach(() => {
   mockFetch.mockReset();
+  process.env.SEEDANCE_ACCESS_KEY = "AKAtestaccess";
+  process.env.SEEDANCE_SECRET_KEY = "testsecretkey";
+  delete process.env.SEEDANCE_ENDPOINT_ID;
+  delete process.env.SEEDANCE_REGION;
+  delete process.env.SEEDANCE_SERVICE;
 });
 
-describe("seedanceProvider", () => {
+afterEach(() => {
+  process.env = { ...ORIG };
+});
+
+describe("seedanceProvider (Volcano AK/SK signing)", () => {
   it("has correct metadata", () => {
     expect(seedanceProvider.name).toBe("Seedance");
     expect(seedanceProvider.maxDurationPerCall).toBe(12);
     expect(seedanceProvider.supportsExtension).toBe(false);
   });
 
+  it("throws if AK/SK env vars are missing", async () => {
+    delete process.env.SEEDANCE_ACCESS_KEY;
+    await expect(
+      seedanceProvider.createGeneration("ad", { duration: 10 })
+    ).rejects.toThrow(/SEEDANCE_ACCESS_KEY and SEEDANCE_SECRET_KEY/);
+  });
+
   describe("createGeneration", () => {
-    it("creates a text-to-video task", async () => {
+    it("signs the request with a valid Volcano V4 Authorization header", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ id: "sd-task-1" }),
@@ -30,19 +43,27 @@ describe("seedanceProvider", () => {
       const result = await seedanceProvider.createGeneration("A pizza ad", {
         duration: 10,
       });
-
       expect(result.id).toBe("sd-task-1");
-      const url = mockFetch.mock.calls[0][0];
+
+      const [url, req] = mockFetch.mock.calls[0];
       expect(url).toContain("/contents/generations/tasks");
-      const req = mockFetch.mock.calls[0][1];
-      expect(req.headers.Authorization).toBe("Bearer test-seedance-key");
+      const h = req.headers as Record<string, string>;
+
+      expect(h.Host).toBe("ark.ap-southeast.bytepluses.com");
+      expect(h["X-Date"]).toMatch(/^\d{8}T\d{6}Z$/);
+      expect(h["X-Content-Sha256"]).toMatch(/^[a-f0-9]{64}$/);
+      expect(h.Authorization).toMatch(
+        /^HMAC-SHA256 Credential=AKAtestaccess\/\d{8}\/ap-southeast\/ark\/request, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature=[a-f0-9]{64}$/
+      );
+
       const body = JSON.parse(req.body);
       expect(body.model).toBe("dreamina-seedance-2-0-260128");
       expect(body.content).toEqual([{ type: "text", text: "A pizza ad" }]);
       expect(body.duration).toBe(10);
     });
 
-    it("adds a first_frame image part when imageUrl provided", async () => {
+    it("uses the Endpoint ID as model when SEEDANCE_ENDPOINT_ID is set", async () => {
+      process.env.SEEDANCE_ENDPOINT_ID = "ep-20260518-abcde";
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ id: "sd-task-2" }),
@@ -54,6 +75,7 @@ describe("seedanceProvider", () => {
       });
 
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.model).toBe("ep-20260518-abcde");
       expect(body.content).toContainEqual({
         type: "image_url",
         image_url: { url: "https://example.com/pizza.jpg" },
@@ -61,16 +83,30 @@ describe("seedanceProvider", () => {
       });
     });
 
+    it("honors SEEDANCE_REGION / SEEDANCE_SERVICE overrides in the scope", async () => {
+      process.env.SEEDANCE_REGION = "cn-north-1";
+      process.env.SEEDANCE_SERVICE = "cv";
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ id: "sd-task-3" }),
+      });
+
+      await seedanceProvider.createGeneration("ad", { duration: 10 });
+
+      const h = mockFetch.mock.calls[0][1].headers as Record<string, string>;
+      expect(h.Authorization).toContain("/cn-north-1/cv/request,");
+    });
+
     it("throws with status and body on failure", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
-        status: 401,
-        text: () => Promise.resolve("unauthorized"),
+        status: 403,
+        text: () => Promise.resolve("signature mismatch"),
       });
 
       await expect(
         seedanceProvider.createGeneration("ad", { duration: 10 })
-      ).rejects.toThrow(/Seedance createGeneration failed \(401\): unauthorized/);
+      ).rejects.toThrow(/Seedance createGeneration failed \(403\): signature mismatch/);
     });
   });
 
@@ -95,9 +131,9 @@ describe("seedanceProvider", () => {
         ok: true,
         json: () => Promise.resolve({ status: "running" }),
       });
-
-      const status = await seedanceProvider.getGeneration("sd-task-1");
-      expect(status.state).toBe("processing");
+      expect((await seedanceProvider.getGeneration("x")).state).toBe(
+        "processing"
+      );
     });
 
     it("maps failed with error message", async () => {
@@ -109,20 +145,20 @@ describe("seedanceProvider", () => {
             error: { message: "content policy violation" },
           }),
       });
-
-      const status = await seedanceProvider.getGeneration("sd-task-1");
-      expect(status.state).toBe("failed");
-      expect(status.error).toBe("content policy violation");
+      const s = await seedanceProvider.getGeneration("x");
+      expect(s.state).toBe("failed");
+      expect(s.error).toBe("content policy violation");
     });
 
     it("treats expired and cancelled as failed", async () => {
-      for (const s of ["expired", "cancelled"]) {
+      for (const st of ["expired", "cancelled"]) {
         mockFetch.mockResolvedValueOnce({
           ok: true,
-          json: () => Promise.resolve({ status: s }),
+          json: () => Promise.resolve({ status: st }),
         });
-        const status = await seedanceProvider.getGeneration("sd-task-1");
-        expect(status.state).toBe("failed");
+        expect((await seedanceProvider.getGeneration("x")).state).toBe(
+          "failed"
+        );
       }
     });
   });

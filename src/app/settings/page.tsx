@@ -29,7 +29,7 @@ const PROVIDER_LABELS: Record<string, { name: string; description: string }> = {
   SEEDANCE: {
     name: "Seedance (BytePlus)",
     description:
-      "ByteDance Seedance 2.0 video generation via BytePlus ModelArk. Get a key at console.byteplus.com (ModelArk).",
+      "ByteDance Seedance 2.0 via BytePlus ModelArk. Configured via env (AK/SK signature auth): SEEDANCE_ACCESS_KEY, SEEDANCE_SECRET_KEY, SEEDANCE_ENDPOINT_ID — not this single-key field.",
   },
   RESEND: {
     name: "Resend",
