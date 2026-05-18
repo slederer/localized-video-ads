@@ -38,7 +38,8 @@ export const runwayProvider: VideoProviderClient = {
     const duration = Math.min(options.duration, 10);
     const body: Record<string, unknown> = {
       model: "gen4_turbo",
-      ratio: "16:9",
+      // Runway Gen-4 requires an explicit pixel ratio, not "16:9".
+      ratio: "1280:720",
       duration,
     };
 

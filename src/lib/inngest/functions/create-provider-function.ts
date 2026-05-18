@@ -13,6 +13,26 @@ export function createProviderFunction(
       id: `generate-${providerKey.toLowerCase()}`,
       retries: 2,
       triggers: [{ event: `video/generate.${providerKey.toLowerCase()}` }],
+      // When the function exhausts retries (e.g. provider auth error),
+      // record the failure so the generation doesn't hang on GENERATING.
+      onFailure: async ({ event, error }) => {
+        const generationId = (
+          event.data.event.data as { generationId: string }
+        ).generationId;
+        const message = String(error?.message || error).slice(0, 500);
+        try {
+          const gen = await db.generation.update({
+            where: { id: generationId },
+            data: { status: "FAILED", errorMessage: message },
+          });
+          await updateJobStatus(gen.jobId);
+        } catch (err) {
+          console.error(
+            `[${providerKey}] onFailure could not mark generation ${generationId} failed:`,
+            err
+          );
+        }
+      },
     },
     async ({ event, step }) => {
       const { generationId } = event.data as { generationId: string };

@@ -37,7 +37,7 @@ describe("runwayProvider", () => {
       expect(body.model).toBe("gen4_turbo");
       expect(body.promptText).toBe("A car dealership ad");
       expect(body.duration).toBe(10);
-      expect(body.ratio).toBe("16:9");
+      expect(body.ratio).toBe("1280:720");
     });
 
     it("includes image when provided", async () => {
