@@ -4,18 +4,23 @@ import type {
   GenerationResult,
   GenerationStatus,
 } from "./types";
+import { getApiKey } from "@/lib/api-keys";
 
 const KLING_API_BASE = "https://api.klingai.com/v1/videos";
 
-function getApiKey(): string {
-  const key = process.env.KLING_API_KEY;
-  if (!key) throw new Error("KLING_API_KEY is not set");
+async function resolveApiKey(): Promise<string> {
+  const key = await getApiKey("KLING");
+  if (!key) {
+    throw new Error(
+      "Kling API key is not configured. Set it at /settings or via KLING_API_KEY env."
+    );
+  }
   return key;
 }
 
-function headers(): Record<string, string> {
+async function headers(): Promise<Record<string, string>> {
   return {
-    Authorization: `Bearer ${getApiKey()}`,
+    Authorization: `Bearer ${await resolveApiKey()}`,
     "Content-Type": "application/json",
   };
 }
@@ -46,7 +51,7 @@ export const klingProvider: VideoProviderClient = {
 
     const res = await fetch(endpoint, {
       method: "POST",
-      headers: headers(),
+      headers: await headers(),
       body: JSON.stringify(body),
     });
 
@@ -63,7 +68,7 @@ export const klingProvider: VideoProviderClient = {
 
   async getGeneration(id: string): Promise<GenerationStatus> {
     const res = await fetch(`${KLING_API_BASE}/text2video/${id}`, {
-      headers: headers(),
+      headers: await headers(),
     });
 
     if (!res.ok) {

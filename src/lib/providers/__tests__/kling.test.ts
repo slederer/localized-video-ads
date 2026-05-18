@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("@/lib/api-keys", () => ({
+  getApiKey: vi.fn(async () => "test-kling-key"),
+}));
+
 import { klingProvider } from "../kling";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 beforeEach(() => {
-  vi.resetAllMocks();
-  process.env.KLING_API_KEY = "test-kling-key";
+  mockFetch.mockReset();
 });
 
 describe("klingProvider", () => {

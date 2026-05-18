@@ -4,18 +4,23 @@ import type {
   GenerationResult,
   GenerationStatus,
 } from "./types";
+import { getApiKey } from "@/lib/api-keys";
 
 const LUMA_API_BASE = "https://api.lumalabs.ai/dream-machine/v1";
 
-function getApiKey(): string {
-  const key = process.env.LUMA_API_KEY;
-  if (!key) throw new Error("LUMA_API_KEY is not set");
+async function resolveApiKey(): Promise<string> {
+  const key = await getApiKey("LUMA");
+  if (!key) {
+    throw new Error(
+      "Luma API key is not configured. Set it at /settings or via LUMA_API_KEY env."
+    );
+  }
   return key;
 }
 
-function headers(): Record<string, string> {
+async function headers(): Promise<Record<string, string>> {
   return {
-    Authorization: `Bearer ${getApiKey()}`,
+    Authorization: `Bearer ${await resolveApiKey()}`,
     "Content-Type": "application/json",
   };
 }
@@ -43,7 +48,7 @@ export const lumaProvider: VideoProviderClient = {
 
     const res = await fetch(`${LUMA_API_BASE}/generations`, {
       method: "POST",
-      headers: headers(),
+      headers: await headers(),
       body: JSON.stringify(body),
     });
 
@@ -58,7 +63,7 @@ export const lumaProvider: VideoProviderClient = {
 
   async getGeneration(id: string): Promise<GenerationStatus> {
     const res = await fetch(`${LUMA_API_BASE}/generations/${id}`, {
-      headers: headers(),
+      headers: await headers(),
     });
 
     if (!res.ok) {
@@ -95,7 +100,7 @@ export const lumaProvider: VideoProviderClient = {
 
     const res = await fetch(`${LUMA_API_BASE}/generations`, {
       method: "POST",
-      headers: headers(),
+      headers: await headers(),
       body: JSON.stringify(body),
     });
 

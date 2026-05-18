@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("@/lib/api-keys", () => ({
+  getApiKey: vi.fn(async () => "test-luma-key"),
+}));
+
 import { lumaProvider } from "../luma";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 beforeEach(() => {
-  vi.resetAllMocks();
-  process.env.LUMA_API_KEY = "test-luma-key";
+  mockFetch.mockReset();
 });
 
 describe("lumaProvider", () => {

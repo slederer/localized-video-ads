@@ -5,6 +5,11 @@ import type {
   GenerationStatus,
 } from "./types";
 
+// NOTE: Veo intentionally stays on env vars (not the encrypted api-keys
+// store). GCP auth needs a project ID + a short-lived OAuth access token
+// (or a service-account JSON), which doesn't fit the single-string
+// per-provider key model the other providers use.
+
 function getProjectId(): string {
   const project = process.env.GOOGLE_CLOUD_PROJECT;
   if (!project) throw new Error("GOOGLE_CLOUD_PROJECT is not set");

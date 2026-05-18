@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("@/lib/api-keys", () => ({
+  getApiKey: vi.fn(async () => "test-minimax-key"),
+}));
+
 import { minimaxProvider } from "../minimax";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 beforeEach(() => {
-  vi.resetAllMocks();
-  process.env.MINIMAX_API_KEY = "test-minimax-key";
+  mockFetch.mockReset();
 });
 
 describe("minimaxProvider", () => {

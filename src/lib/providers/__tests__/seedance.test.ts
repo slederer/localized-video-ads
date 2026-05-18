@@ -1,12 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("@/lib/api-keys", () => ({
+  getApiKey: vi.fn(async () => "test-seedance-key"),
+}));
+
 import { seedanceProvider } from "../seedance";
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 beforeEach(() => {
-  vi.resetAllMocks();
-  process.env.SEEDANCE_API_KEY = "test-seedance-key";
+  mockFetch.mockReset();
 });
 
 describe("seedanceProvider", () => {

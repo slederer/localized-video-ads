@@ -4,18 +4,23 @@ import type {
   GenerationResult,
   GenerationStatus,
 } from "./types";
+import { getApiKey } from "@/lib/api-keys";
 
 const MINIMAX_API_BASE = "https://api.minimax.chat/v1";
 
-function getApiKey(): string {
-  const key = process.env.MINIMAX_API_KEY;
-  if (!key) throw new Error("MINIMAX_API_KEY is not set");
+async function resolveApiKey(): Promise<string> {
+  const key = await getApiKey("MINIMAX");
+  if (!key) {
+    throw new Error(
+      "MiniMax API key is not configured. Set it at /settings or via MINIMAX_API_KEY env."
+    );
+  }
   return key;
 }
 
-function headers(): Record<string, string> {
+async function headers(): Promise<Record<string, string>> {
   return {
-    Authorization: `Bearer ${getApiKey()}`,
+    Authorization: `Bearer ${await resolveApiKey()}`,
     "Content-Type": "application/json",
   };
 }
@@ -41,7 +46,7 @@ export const minimaxProvider: VideoProviderClient = {
 
     const res = await fetch(`${MINIMAX_API_BASE}/video_generation`, {
       method: "POST",
-      headers: headers(),
+      headers: await headers(),
       body: JSON.stringify(body),
     });
 
@@ -59,7 +64,7 @@ export const minimaxProvider: VideoProviderClient = {
   async getGeneration(id: string): Promise<GenerationStatus> {
     const res = await fetch(
       `${MINIMAX_API_BASE}/query/video_generation?task_id=${id}`,
-      { headers: headers() }
+      { headers: await headers() }
     );
 
     if (!res.ok) {

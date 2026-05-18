@@ -4,20 +4,25 @@ import type {
   GenerationResult,
   GenerationStatus,
 } from "./types";
+import { getApiKey } from "@/lib/api-keys";
 
 // BytePlus ModelArk (ByteDance) — Seedance 2.0 video generation.
 const ARK_API_BASE = "https://ark.ap-southeast.bytepluses.com/api/v3";
 const SEEDANCE_MODEL = "dreamina-seedance-2-0-260128";
 
-function getApiKey(): string {
-  const key = process.env.SEEDANCE_API_KEY;
-  if (!key) throw new Error("SEEDANCE_API_KEY is not set");
+async function resolveApiKey(): Promise<string> {
+  const key = await getApiKey("SEEDANCE");
+  if (!key) {
+    throw new Error(
+      "Seedance API key is not configured. Set it at /settings or via SEEDANCE_API_KEY env."
+    );
+  }
   return key;
 }
 
-function headers(): Record<string, string> {
+async function headers(): Promise<Record<string, string>> {
   return {
-    Authorization: `Bearer ${getApiKey()}`,
+    Authorization: `Bearer ${await resolveApiKey()}`,
     "Content-Type": "application/json",
   };
 }
@@ -48,7 +53,7 @@ export const seedanceProvider: VideoProviderClient = {
 
     const res = await fetch(`${ARK_API_BASE}/contents/generations/tasks`, {
       method: "POST",
-      headers: headers(),
+      headers: await headers(),
       body: JSON.stringify({
         model: SEEDANCE_MODEL,
         content,
@@ -71,7 +76,7 @@ export const seedanceProvider: VideoProviderClient = {
   async getGeneration(id: string): Promise<GenerationStatus> {
     const res = await fetch(
       `${ARK_API_BASE}/contents/generations/tasks/${id}`,
-      { headers: headers() }
+      { headers: await headers() }
     );
 
     if (!res.ok) {
