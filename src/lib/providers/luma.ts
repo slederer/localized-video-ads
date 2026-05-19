@@ -6,7 +6,12 @@ import type {
 } from "./types";
 import { getApiKey } from "@/lib/api-keys";
 
-const LUMA_API_BASE = "https://api.lumalabs.ai/dream-machine/v1";
+// Luma Agents API (uni-1, multimodal: image/image_edit/video/video_edit).
+// POST /v1/generations -> { id, state, type, model, output[], failure_reason }
+// GET  /v1/generations/{id} -> same shape; state in {queued,running?,completed,failed}
+// Output URL at output[0].url (presigned ~1h, fine — pipeline re-uploads
+// immediately to our R2/S3).
+const LUMA_API_BASE = "https://agents.lumalabs.ai/v1";
 
 async function resolveApiKey(): Promise<string> {
   const key = await getApiKey("LUMA");
@@ -27,8 +32,9 @@ async function headers(): Promise<Record<string, string>> {
 
 export const lumaProvider: VideoProviderClient = {
   name: "Luma",
-  maxDurationPerCall: 5,
-  supportsExtension: true,
+  // uni-1 video typical max-per-call; the API will reject if too long.
+  maxDurationPerCall: 8,
+  supportsExtension: false,
 
   async createGeneration(
     prompt: string,
@@ -36,14 +42,17 @@ export const lumaProvider: VideoProviderClient = {
   ): Promise<GenerationResult> {
     const body: Record<string, unknown> = {
       prompt,
-      model: "ray-flash-2",
-      duration: "5s",
+      model: "uni-1",
+      type: "video",
+      aspect_ratio: "16:9",
+      duration: Math.min(options.duration, 8),
     };
 
     if (options.imageUrl) {
-      body.keyframes = {
-        frame0: { type: "image", url: options.imageUrl },
-      };
+      // Mirror the Agents API's image_edit `source` shape for a first-frame
+      // reference; safe to omit if not supported (server ignores or 4xx
+      // surfaces via onFailure).
+      body.source = { url: options.imageUrl };
     }
 
     const res = await fetch(`${LUMA_API_BASE}/generations`, {
@@ -73,45 +82,20 @@ export const lumaProvider: VideoProviderClient = {
     const data = await res.json();
     const stateMap: Record<string, GenerationStatus["state"]> = {
       queued: "pending",
-      dreaming: "processing",
+      running: "processing",
+      processing: "processing",
       completed: "completed",
       failed: "failed",
     };
 
+    const outputs: Array<{ type?: string; url?: string }> = data.output || [];
+    const videoOut = outputs.find((o) => o.type === "video") || outputs[0];
+
     return {
       id: data.id,
       state: stateMap[data.state] || "processing",
-      videoUrl: data.assets?.video,
-      error: data.failure_reason,
+      videoUrl: videoOut?.url,
+      error: data.failure_reason || undefined,
     };
-  },
-
-  async extendGeneration(
-    generationId: string,
-    prompt: string
-  ): Promise<GenerationResult> {
-    const body = {
-      prompt,
-      model: "ray-flash-2",
-      keyframes: {
-        frame0: { type: "generation", id: generationId },
-      },
-    };
-
-    const res = await fetch(`${LUMA_API_BASE}/generations`, {
-      method: "POST",
-      headers: await headers(),
-      body: JSON.stringify(body),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(
-        `Luma extendGeneration failed (${res.status}): ${text}`
-      );
-    }
-
-    const data = await res.json();
-    return { id: data.id };
   },
 };

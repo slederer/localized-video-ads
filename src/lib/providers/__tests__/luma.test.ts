@@ -13,130 +13,121 @@ beforeEach(() => {
   mockFetch.mockReset();
 });
 
-describe("lumaProvider", () => {
+describe("lumaProvider (Luma Agents API, uni-1)", () => {
   it("has correct metadata", () => {
     expect(lumaProvider.name).toBe("Luma");
-    expect(lumaProvider.maxDurationPerCall).toBe(5);
-    expect(lumaProvider.supportsExtension).toBe(true);
+    expect(lumaProvider.maxDurationPerCall).toBe(8);
+    expect(lumaProvider.supportsExtension).toBe(false);
   });
 
   describe("createGeneration", () => {
-    it("creates text-to-video generation", async () => {
+    it("posts to the Agents API with type=video and uni-1", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: "gen-123" }),
+        json: () => Promise.resolve({ id: "luma-gen-1" }),
       });
 
-      const result = await lumaProvider.createGeneration("A cozy bakery ad", {
-        duration: 10,
+      const result = await lumaProvider.createGeneration("A pizza ad", {
+        duration: 8,
       });
+      expect(result.id).toBe("luma-gen-1");
 
-      expect(result.id).toBe("gen-123");
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://api.lumalabs.ai/dream-machine/v1/generations",
-        expect.objectContaining({
-          method: "POST",
-          body: expect.stringContaining('"prompt":"A cozy bakery ad"'),
-        })
+      const [url, req] = mockFetch.mock.calls[0];
+      expect(url).toBe("https://agents.lumalabs.ai/v1/generations");
+      expect(req.method).toBe("POST");
+      expect((req.headers as Record<string, string>).Authorization).toBe(
+        "Bearer test-luma-key"
       );
-
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.model).toBe("ray-flash-2");
-      expect(body.duration).toBe("5s");
-      expect(body.keyframes).toBeUndefined();
+      const body = JSON.parse(req.body);
+      expect(body.model).toBe("uni-1");
+      expect(body.type).toBe("video");
+      expect(body.prompt).toBe("A pizza ad");
+      expect(body.aspect_ratio).toBe("16:9");
+      expect(body.duration).toBe(8);
+      expect(body.source).toBeUndefined();
     });
 
-    it("creates image-to-video generation with keyframe", async () => {
+    it("clamps duration to maxDurationPerCall", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: "gen-456" }),
+        json: () => Promise.resolve({ id: "luma-gen-2" }),
       });
-
-      await lumaProvider.createGeneration("A bakery storefront", {
-        duration: 10,
-        imageUrl: "https://example.com/bakery.jpg",
-      });
-
+      await lumaProvider.createGeneration("x", { duration: 30 });
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.keyframes).toEqual({
-        frame0: { type: "image", url: "https://example.com/bakery.jpg" },
-      });
+      expect(body.duration).toBe(8);
     });
 
-    it("throws on API error", async () => {
+    it("includes source.url when imageUrl is provided", async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ id: "luma-gen-3" }),
+      });
+      await lumaProvider.createGeneration("ad", {
+        duration: 5,
+        imageUrl: "https://example.com/frame.jpg",
+      });
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.source).toEqual({ url: "https://example.com/frame.jpg" });
+    });
+
+    it("throws with status and body on failure", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
-        status: 400,
-        text: () => Promise.resolve("Bad request"),
+        status: 401,
+        text: () => Promise.resolve("Invalid API key"),
       });
-
       await expect(
-        lumaProvider.createGeneration("test", { duration: 10 })
-      ).rejects.toThrow("Luma createGeneration failed (400)");
+        lumaProvider.createGeneration("x", { duration: 5 })
+      ).rejects.toThrow(/Luma createGeneration failed \(401\): Invalid API key/);
     });
   });
 
   describe("getGeneration", () => {
-    it("maps completed state with video URL", async () => {
+    it("maps completed and picks the video output URL", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () =>
           Promise.resolve({
-            id: "gen-123",
+            id: "luma-gen-1",
             state: "completed",
-            assets: { video: "https://luma.ai/video.mp4" },
+            output: [
+              { type: "video", url: "https://luma.example/out.mp4" },
+            ],
           }),
       });
-
-      const status = await lumaProvider.getGeneration("gen-123");
-      expect(status.state).toBe("completed");
-      expect(status.videoUrl).toBe("https://luma.ai/video.mp4");
+      const s = await lumaProvider.getGeneration("luma-gen-1");
+      expect(s.state).toBe("completed");
+      expect(s.videoUrl).toBe("https://luma.example/out.mp4");
     });
 
-    it("maps dreaming state to processing", async () => {
+    it("maps queued to pending and running to processing", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({ id: "gen-123", state: "dreaming" }),
+        json: () => Promise.resolve({ id: "x", state: "queued", output: [] }),
       });
+      expect((await lumaProvider.getGeneration("x")).state).toBe("pending");
 
-      const status = await lumaProvider.getGeneration("gen-123");
-      expect(status.state).toBe("processing");
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ id: "x", state: "running", output: [] }),
+      });
+      expect((await lumaProvider.getGeneration("x")).state).toBe("processing");
     });
 
-    it("maps failed state with error", async () => {
+    it("maps failed with failure_reason", async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () =>
           Promise.resolve({
-            id: "gen-123",
+            id: "x",
             state: "failed",
-            failure_reason: "Content policy violation",
+            output: [],
+            failure_reason: "content policy",
           }),
       });
-
-      const status = await lumaProvider.getGeneration("gen-123");
-      expect(status.state).toBe("failed");
-      expect(status.error).toBe("Content policy violation");
-    });
-  });
-
-  describe("extendGeneration", () => {
-    it("extends with previous generation as keyframe", async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ id: "gen-789" }),
-      });
-
-      const result = await lumaProvider.extendGeneration!(
-        "gen-123",
-        "Continue the bakery scene"
-      );
-
-      expect(result.id).toBe("gen-789");
-      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.keyframes).toEqual({
-        frame0: { type: "generation", id: "gen-123" },
-      });
+      const s = await lumaProvider.getGeneration("x");
+      expect(s.state).toBe("failed");
+      expect(s.error).toBe("content policy");
     });
   });
 });
