@@ -18,6 +18,10 @@ vi.mock("@aws-sdk/client-s3", () => {
 beforeEach(async () => {
   vi.resetModules();
   sendMock.mockClear();
+  delete process.env.STORAGE_DRIVER;
+  delete process.env.S3_BUCKET;
+  delete process.env.S3_REGION;
+  delete process.env.S3_PUBLIC_BASE_URL;
   process.env.R2_ACCOUNT_ID = "test-account";
   process.env.R2_ACCESS_KEY_ID = "test-key-id";
   process.env.R2_SECRET_ACCESS_KEY = "test-secret";
@@ -70,6 +74,52 @@ describe("r2", () => {
       const { getPublicUrl } = await import("../r2");
       expect(() => getPublicUrl("test")).toThrow(
         "R2 environment variables are not fully configured"
+      );
+    });
+  });
+
+  describe("S3 driver", () => {
+    beforeEach(() => {
+      process.env.STORAGE_DRIVER = "s3";
+      process.env.S3_BUCKET = "adforge-videos-slederer";
+      process.env.S3_REGION = "us-east-1";
+    });
+
+    it("builds the default virtual-hosted public URL", async () => {
+      const { getPublicUrl } = await import("../r2");
+      expect(getPublicUrl("videos/x.mp4")).toBe(
+        "https://adforge-videos-slederer.s3.us-east-1.amazonaws.com/videos/x.mp4"
+      );
+    });
+
+    it("honors S3_PUBLIC_BASE_URL override", async () => {
+      process.env.S3_PUBLIC_BASE_URL = "https://cdn.example.com/";
+      const { getPublicUrl } = await import("../r2");
+      expect(getPublicUrl("videos/x.mp4")).toBe(
+        "https://cdn.example.com/videos/x.mp4"
+      );
+    });
+
+    it("uploads to the S3 bucket (no static credentials)", async () => {
+      const { uploadVideo } = await import("../r2");
+      const url = await uploadVideo(
+        "videos/job-1.mp4",
+        Buffer.from("data"),
+        "video/mp4"
+      );
+      expect(url).toBe(
+        "https://adforge-videos-slederer.s3.us-east-1.amazonaws.com/videos/job-1.mp4"
+      );
+      expect(sendMock.mock.calls[0][0].params.Bucket).toBe(
+        "adforge-videos-slederer"
+      );
+    });
+
+    it("throws when S3_BUCKET is missing", async () => {
+      delete process.env.S3_BUCKET;
+      const { getPublicUrl } = await import("../r2");
+      expect(() => getPublicUrl("x")).toThrow(
+        "S3 storage: S3_BUCKET is not configured"
       );
     });
   });
