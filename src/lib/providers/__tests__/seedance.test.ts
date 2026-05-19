@@ -10,6 +10,7 @@ beforeEach(() => {
   mockFetch.mockReset();
   process.env.SEEDANCE_ACCESS_KEY = "AKAtestaccess";
   process.env.SEEDANCE_SECRET_KEY = "testsecretkey";
+  delete process.env.ARK_API_KEY;
   delete process.env.SEEDANCE_ENDPOINT_ID;
   delete process.env.SEEDANCE_REGION;
   delete process.env.SEEDANCE_SERVICE;
@@ -161,5 +162,32 @@ describe("seedanceProvider (Volcano AK/SK signing)", () => {
         );
       }
     });
+  });
+});
+
+describe("seedanceProvider (Bearer ARK_API_KEY — preferred)", () => {
+  beforeEach(() => {
+    process.env.ARK_API_KEY = "ark-test-bearer-key";
+    process.env.SEEDANCE_ENDPOINT_ID = "ep-20260519-xyz";
+  });
+
+  it("uses Bearer auth and the endpoint id, with no signing headers", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ id: "sd-bearer-1" }),
+    });
+
+    const result = await seedanceProvider.createGeneration("A pizza ad", {
+      duration: 10,
+    });
+    expect(result.id).toBe("sd-bearer-1");
+
+    const req = mockFetch.mock.calls[0][1];
+    const h = req.headers as Record<string, string>;
+    expect(h.Authorization).toBe("Bearer ark-test-bearer-key");
+    expect(h["X-Date"]).toBeUndefined();
+    expect(h["X-Content-Sha256"]).toBeUndefined();
+
+    expect(JSON.parse(req.body).model).toBe("ep-20260519-xyz");
   });
 });

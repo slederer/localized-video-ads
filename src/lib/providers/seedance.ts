@@ -8,14 +8,15 @@ import type {
 
 // BytePlus ModelArk (ByteDance) — Seedance 2.0 video generation.
 //
-// NOTE: this provider uses Volcano Engine AK/SK signature-V4 auth, not a
-// single Bearer key (like veo.ts, it stays on env vars, not the encrypted
-// single-string key store):
+// Auth (env-based, like veo.ts — not the encrypted single-key store):
+//   ARK_API_KEY           - PREFERRED. ModelArk Bearer API key. Simple
+//                           `Authorization: Bearer <key>`, most robust.
+//   SEEDANCE_ENDPOINT_ID  - ModelArk inference Endpoint ID (ep-…) with
+//                           Seedance 2.0 enabled. Used as `model`; falls
+//                           back to the model name if unset.
+//   --- Fallback only, if ARK_API_KEY is unset: Volcano V4 AK/SK signing
 //   SEEDANCE_ACCESS_KEY   - Volcano Engine Access Key ID
 //   SEEDANCE_SECRET_KEY   - Volcano Engine Secret Access Key
-//   SEEDANCE_ENDPOINT_ID  - (recommended) ModelArk inference Endpoint ID.
-//                           AK/SK auth expects `model` = Endpoint ID; falls
-//                           back to the model name if unset.
 //   SEEDANCE_REGION       - default "ap-southeast"
 //   SEEDANCE_SERVICE      - default "ark"
 const ARK_HOST = "ark.ap-southeast.bytepluses.com";
@@ -48,6 +49,17 @@ function signedHeaders(
   path: string,
   body: string
 ): Record<string, string> {
+  // Preferred path: ModelArk Bearer API key (simple, robust).
+  const apiKey = process.env.ARK_API_KEY;
+  if (apiKey) {
+    return {
+      "Content-Type": "application/json",
+      Host: ARK_HOST,
+      Authorization: `Bearer ${apiKey}`,
+    };
+  }
+
+  // Fallback: Volcano Engine signature V4 with AK/SK.
   const { ak, sk } = creds();
   const region = process.env.SEEDANCE_REGION || "ap-southeast";
   const service = process.env.SEEDANCE_SERVICE || "ark";
